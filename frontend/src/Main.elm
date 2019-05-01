@@ -1,6 +1,7 @@
 module Main exposing (Model, Msg, init, update, view)
 
-import Browser
+import Browser exposing (UrlRequest(..))
+import Browser.Navigation
 import Element as E
 import Element.Background as Background
 import Element.Border as Border
@@ -13,22 +14,23 @@ import Json.Decode as Json
 import Maybe.Extra as Maybe
 import Page.TaskInput
 import Palette
+import Router
+import SharedState exposing (SharedState)
+import Url exposing (Url)
 
 
 main =
-    Browser.document
+    Browser.application
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
 
 
 type alias Category =
-    String
-
-
-type alias Class =
     String
 
 
@@ -38,79 +40,87 @@ type alias Task =
     }
 
 
-type Model
-    = TaskInput Page.TaskInput.Model
+type alias Model =
+    { appState : AppState
+    , url : Url
+    , navKey : Browser.Navigation.Key
+    }
 
 
-type alias HeaderModel a =
-    { a | class : Class }
+type AppState
+    = Ready SharedState Router.Model
 
 
 type Msg
-    = NoOp
-    | GotTaskInputMsg Page.TaskInput.Msg
+    = UrlChanged Url
+    | LinkClicked Browser.UrlRequest
+    | GotRouterMsg Router.Msg
+    | NoOp
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : () -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
+init _ url key =
     let
-        model =
-            { chosenClass = "5A"
-            , tasks = []
-            , categoryInput = ""
-            , maxPointsInput = ""
+        sharedState =
+            { navKey = key
+            , chosenClass = { name = "5A", students = []}
+            , allClasses = 
+                [ { name = "7D", students = []}
+                , { name = "5A", students = []}
+                , { name = "6C", students = []}
+                ]
             }
     in
-    ( TaskInput model, Cmd.none )
+    ( { appState = Ready sharedState Router.init
+      , url = url
+      , navKey = key
+      }
+    , Cmd.none
+    )
 
 
 view : Model -> Browser.Document Msg
 view model =
-    let
-        viewPage toMsg { title, body } =
-            { title = title, body = [ E.layout [] <| page <| E.map toMsg body ] }
-    in
-    case model of
-        TaskInput subModel ->
-            viewPage GotTaskInputMsg <| Page.TaskInput.view subModel
-
-
-page body =
-    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13 ]
-        [ header
-        , body
-        ]
-
-
-header =
-    E.row [ E.width E.fill, E.height <| E.fillPortion 1, E.alignTop, Border.color Palette.lightBlue, Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 } ]
-        [ E.column [ E.alignLeft, E.padding 5, E.width <| E.fillPortion 3, Font.color Palette.lightOrange, Font.size 16, Font.bold ] [ E.text "education assistant" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Podsumowanie" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Wprowadzanie wyników" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Zadania domowe" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1, E.padding 0, E.spacingXY 0 7 ]
-            [ E.el [ E.centerX ] <| E.text <| "Klasa " ++ "test"
-            , E.el [ E.centerX ] <| Elements.primaryButtonScaled "Zarządzaj klasą" NoOp 0.5
-            ]
-        ]
+    case model.appState of
+        Ready sharedState subModel ->
+            Router.view GotRouterMsg sharedState subModel
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
-        ( GotTaskInputMsg subMsg, TaskInput subModel ) ->
-            Page.TaskInput.update subMsg subModel
-                |> updateWith TaskInput GotTaskInputMsg model
+    case msg of
+        UrlChanged url ->
+            updateRouter { model | url = url } (Router.UrlChange url)
 
-        -- Discard messages without a matching page
-        ( _, _ ) ->
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Internal url ->
+                    ( model, Browser.Navigation.pushUrl model.navKey (Url.toString url) )
+
+                External url ->
+                    ( model, Browser.Navigation.load url )
+
+        GotRouterMsg routerMsg ->
+            updateRouter model routerMsg
+
+
+        NoOp ->
             ( model, Cmd.none )
 
 
-updateWith toModel toMsg model ( subModel, subCmd ) =
-    ( toModel subModel
-    , Cmd.map toMsg subCmd
-    )
+updateRouter model routerMsg =
+    case model.appState of
+        Ready sharedState routerModel ->
+            let
+                ( nextRouterModel, routerCmd, sharedStateUpdate ) =
+                    Router.update sharedState routerModel routerMsg
+
+                newSharedState = SharedState.update sharedState sharedStateUpdate
+
+            in
+            ( { model | appState = Ready newSharedState nextRouterModel }
+            , Cmd.map GotRouterMsg routerCmd
+            )
 
 
 subscriptions : Model -> Sub Msg

@@ -1,4 +1,4 @@
-module Page.TaskInput exposing (..)
+module Page.TaskInput exposing (Category, Model, Msg(..), Table, Task, bgColor, completedRow, createTask, headerRow, init, inputRow, leftSite, onEnter, rightSite, subscriptions, table, update, view)
 
 import Browser
 import Element as E
@@ -6,19 +6,16 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Elements
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Json
 import Maybe.Extra as Maybe
 import Palette
-import Elements
+import SharedState exposing (SharedState)
 
 
 type alias Category =
-    String
-
-
-type alias Class =
     String
 
 
@@ -29,8 +26,7 @@ type alias Task =
 
 
 type alias Model =
-    { chosenClass : Class
-    , tasks : List Task
+    { tasks : List Task
     , categoryInput : String
     , maxPointsInput : String
     }
@@ -51,12 +47,11 @@ type Msg
     | EnterRow
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : ( Model, Cmd Msg )
+init =
     let
         model =
-            { chosenClass = "5A"
-            , tasks = []
+            { tasks = []
             , categoryInput = ""
             , maxPointsInput = ""
             }
@@ -64,14 +59,8 @@ init _ =
     ( model, Cmd.none )
 
 
-view : Model -> { title: String, body: E.Element Msg}
-view model =
-    { title = "Input tasks - Education assistant"
-    , body = body model
-    }
-
-
-body model =
+view : SharedState -> Model -> E.Element Msg
+view sharedState model =
     E.row [ E.alignBottom, E.width E.fill, E.height <| E.fillPortion 11, E.paddingXY 0 30 ]
         [ leftSite model
         , rightSite
