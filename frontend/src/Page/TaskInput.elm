@@ -165,6 +165,7 @@ update msg model =
 createTask categoryInput maxPointsInput =
     String.toInt maxPointsInput
         |> Maybe.filter (\_ -> categoryInput /= "")
+        |> Maybe.filter (\maxPoints -> maxPoints > 0)
         |> Maybe.map (\maxPoints -> { category = categoryInput, maxPoints = maxPoints })
 
 
