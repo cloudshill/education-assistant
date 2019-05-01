@@ -3,6 +3,7 @@ module Router exposing (Model, Msg(..), Route(..), header, init, page, pageView,
 import Browser
 import Browser.Navigation
 import Element as E
+import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Elements
@@ -58,7 +59,7 @@ view toMsg sharedState model =
 
 
 page sharedState body =
-    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13 ]
+    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingEach { top = 0, bottom = 15, left = 15, right = 15 } ]
         [ header sharedState
         , body
         ]
@@ -72,26 +73,41 @@ header sharedState =
         , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Zadania domowe" ]
         , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1, E.padding 0, E.spacingXY 0 7 ]
             [ classSelector sharedState
-
             , E.el [ E.centerX ] <| Elements.primaryButtonScaled "Zarządzaj klasą" (NavigateTo TaskInput) 0.5
             ]
         ]
 
 
+resetSelectAttributes =
+    [ Html.Attributes.style "border" "none"
+    , Html.Attributes.style "-moz-appearance" "none"
+    , Html.Attributes.style "appearance" "none"
+    , Html.Attributes.style "-ms-appearance" "none"
+    , Html.Attributes.style "-webkit-appearance" "none"
+    , Html.Attributes.style "background" "#FFFFFF"
+    ]
+
+
 classSelector : SharedState -> E.Element Msg
 classSelector sharedState =
-    E.html <|
-        Html.div []
-            [ Html.select [ Html.Events.onInput ChangedClass ] (classOptions sharedState)
-            ]
+    Html.select ([ Html.Events.onInput ChangedClass, Html.Attributes.style "text-align" "center" ] ++ resetSelectAttributes) (classOptions sharedState)
+        |> E.html
+        |> E.el [ E.centerX, E.width E.fill ]
 
 
 classOptions sharedState =
     let
         isSelected class =
             sharedState.chosenClass == class
+
+        classText class =
+            if isSelected class then
+                Html.text class.name
+
+            else
+                Html.text class.name
     in
-    List.map (\class -> Html.option [ Html.Attributes.selected <| isSelected class ] [ Html.text class.name ]) sharedState.allClasses
+    List.map (\class -> Html.option [ Html.Attributes.selected <| isSelected class ] [ classText class ]) sharedState.allClasses
 
 
 pageView : SharedState -> Model -> E.Element Msg
@@ -131,7 +147,7 @@ update sharedState model msg =
             )
 
         ChangedClass className ->
-            ( model, Cmd.none, UpdateClass className)
+            ( model, Cmd.none, UpdateClass className )
 
 
 parseUrl : Url -> Route
@@ -149,6 +165,7 @@ parseUrl url =
 routeParser =
     Url.Parser.oneOf
         [ Url.Parser.map TaskInput Url.Parser.top ]
+
 
 reverseRoute : Route -> String
 reverseRoute route =
