@@ -1,4 +1,4 @@
-module Router exposing (Model, Msg(..), Route(..), header, init, page, pageView, parseUrl, routeParser, update, view)
+module Routing.Router exposing (Model, Msg(..), header, init, page, pageView, update, view)
 
 import Browser
 import Browser.Navigation
@@ -10,22 +10,19 @@ import Elements
 import Html
 import Html.Attributes
 import Html.Events
+import Page.Grading
 import Page.TaskInput
 import Palette
+import Routing.Helpers exposing (..)
 import SharedState exposing (SharedState, SharedStateUpdate(..))
 import Url exposing (Url)
-import Url.Parser exposing ((</>))
 
 
 type alias Model =
     { route : Route
     , taskInputModel : Page.TaskInput.Model
+    , gradingModel : Page.Grading.Model
     }
-
-
-type Route
-    = NotFound
-    | TaskInput
 
 
 type Msg
@@ -33,6 +30,7 @@ type Msg
     | NavigateTo Route
     | ChangedClass String
     | GotTaskInputMsg Page.TaskInput.Msg
+    | GotGradingMsg Page.Grading.Msg
 
 
 init : Model
@@ -40,9 +38,13 @@ init =
     let
         ( taskInputModel, _ ) =
             Page.TaskInput.init
+
+        ( gradingModel, _ ) =
+            Page.Grading.init
     in
     { route = TaskInput
     , taskInputModel = taskInputModel
+    , gradingModel = gradingModel
     }
 
 
@@ -59,9 +61,9 @@ view toMsg sharedState model =
 
 
 page sharedState body =
-    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingEach { top = 0, bottom = 15, left = 15, right = 15 } ]
+    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingXY 13 0 ]
         [ header sharedState
-        , body
+        , E.el [ E.height <| E.fillPortion 11, E.width E.fill ] body
         ]
 
 
@@ -117,6 +119,10 @@ pageView sharedState model =
             Page.TaskInput.view sharedState model.taskInputModel
                 |> E.map GotTaskInputMsg
 
+        Grading ->
+            Page.Grading.view sharedState model.gradingModel
+                |> E.map GotGradingMsg
+
         NotFound ->
             E.text "404"
 
@@ -136,39 +142,25 @@ update sharedState model msg =
             , NoUpdate
             )
 
+        ChangedClass className ->
+            ( model, Cmd.none, UpdateClass className )
+
         GotTaskInputMsg subMsg ->
             let
                 ( nextModel, nextCmd ) =
-                    Page.TaskInput.update subMsg model.taskInputModel
+                    Page.TaskInput.update sharedState subMsg model.taskInputModel
             in
             ( { model | taskInputModel = nextModel }
             , Cmd.map GotTaskInputMsg nextCmd
             , NoUpdate
             )
 
-        ChangedClass className ->
-            ( model, Cmd.none, UpdateClass className )
-
-
-parseUrl : Url -> Route
-parseUrl url =
-    case url.fragment of
-        Nothing ->
-            NotFound
-
-        Just fragment ->
-            { url | path = fragment, fragment = Nothing }
-                |> Url.Parser.parse routeParser
-                |> Maybe.withDefault NotFound
-
-
-routeParser =
-    Url.Parser.oneOf
-        [ Url.Parser.map TaskInput Url.Parser.top ]
-
-
-reverseRoute : Route -> String
-reverseRoute route =
-    case route of
-        _ ->
-            "#/"
+        GotGradingMsg subMsg ->
+            let
+                ( nextModel, nextCmd ) =
+                    Page.Grading.update sharedState subMsg model.gradingModel
+            in
+            ( { model | gradingModel = nextModel }
+            , Cmd.map GotGradingMsg nextCmd
+            , NoUpdate
+            )

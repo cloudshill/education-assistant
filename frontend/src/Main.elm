@@ -14,8 +14,8 @@ import Json.Decode as Json
 import Maybe.Extra as Maybe
 import Page.TaskInput
 import Palette
-import Router
-import SharedState exposing (SharedState)
+import Routing.Router
+import SharedState exposing (SharedState, Student(..))
 import Url exposing (Url)
 
 
@@ -48,13 +48,13 @@ type alias Model =
 
 
 type AppState
-    = Ready SharedState Router.Model
+    = Ready SharedState Routing.Router.Model
 
 
 type Msg
     = UrlChanged Url
     | LinkClicked Browser.UrlRequest
-    | GotRouterMsg Router.Msg
+    | GotRouterMsg Routing.Router.Msg
     | NoOp
 
 
@@ -65,13 +65,13 @@ init _ url key =
             { navKey = key
             , chosenClass = { name = "5A", students = []}
             , allClasses = 
-                [ { name = "7D", students = []}
-                , { name = "5A", students = []}
-                , { name = "6C", students = []}
+                [ { name = "7D", students = [Student "Ola", Student "Tomek", Student "Marek"]}
+                , { name = "5A", students = [Student "Basia", Student "Ryszard", Student "Mateusz"]}
+                , { name = "6C", students = [Student "Michał", Student "Małgosia", Student "Jaś"]}
                 ]
             }
     in
-    ( { appState = Ready sharedState Router.init
+    ( { appState = Ready sharedState Routing.Router.init
       , url = url
       , navKey = key
       }
@@ -83,14 +83,14 @@ view : Model -> Browser.Document Msg
 view model =
     case model.appState of
         Ready sharedState subModel ->
-            Router.view GotRouterMsg sharedState subModel
+            Routing.Router.view GotRouterMsg sharedState subModel
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UrlChanged url ->
-            updateRouter { model | url = url } (Router.UrlChange url)
+            updateRouter { model | url = url } (Routing.Router.UrlChange url)
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -113,7 +113,7 @@ updateRouter model routerMsg =
         Ready sharedState routerModel ->
             let
                 ( nextRouterModel, routerCmd, sharedStateUpdate ) =
-                    Router.update sharedState routerModel routerMsg
+                    Routing.Router.update sharedState routerModel routerMsg
 
                 newSharedState = SharedState.update sharedState sharedStateUpdate
 

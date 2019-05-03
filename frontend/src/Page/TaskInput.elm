@@ -1,6 +1,7 @@
 module Page.TaskInput exposing (Category, Model, Msg(..), Table, Task, bgColor, completedRow, createTask, headerRow, init, inputRow, leftSite, onEnter, rightSite, subscriptions, table, update, view)
 
 import Browser
+import Browser.Navigation
 import Element as E
 import Element.Background as Background
 import Element.Border as Border
@@ -12,6 +13,7 @@ import Html.Events
 import Json.Decode as Json
 import Maybe.Extra as Maybe
 import Palette
+import Routing.Helpers exposing (reverseRoute, Route(..))
 import SharedState exposing (SharedState)
 
 
@@ -45,6 +47,7 @@ type Msg
     | ChangeCategoryInput String
     | ChangeMaxPointsInput String
     | EnterRow
+    | ClickedStartGrading
 
 
 init : ( Model, Cmd Msg )
@@ -61,14 +64,14 @@ init =
 
 view : SharedState -> Model -> E.Element Msg
 view sharedState model =
-    E.row [ E.alignBottom, E.width E.fill, E.height <| E.fillPortion 11, E.paddingXY 0 30 ]
+    E.row [ E.alignBottom, E.width E.fill, E.height E.fill, E.paddingXY 0 30 ]
         [ leftSite model
         , rightSite
         ]
 
 
 leftSite model =
-    E.column [ E.width <| E.fillPortion 2, E.paddingXY 20 0, E.alignTop, E.spacing 20 ]
+    E.column [ E.width <| E.fillPortion 5, E.paddingXY 20 0, E.alignTop, E.spacing 20 ]
         [ E.el [ Font.bold, Font.size 18 ] <| E.text "Wprowadź kategorie zadań"
         , table model
         ]
@@ -135,14 +138,14 @@ onEnter msg =
 
 
 rightSite =
-    E.column [ E.width <| E.fillPortion 1, E.spacing 5, E.paddingXY 0 50, E.alignTop ]
-        [ Elements.primaryButton "Rozpocznij wprowadzanie ocen" NoOp
+    E.column [ E.width <| E.fillPortion 3, E.spacing 5, E.paddingXY 0 50, E.alignTop ]
+        [ Elements.primaryButton "Rozpocznij wprowadzanie ocen" ClickedStartGrading
         , Elements.secondaryButton "Zapisz szkic" NoOp
         ]
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : SharedState -> Msg -> Model -> ( Model, Cmd Msg )
+update sharedState msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
@@ -160,6 +163,9 @@ update msg model =
 
                 Nothing ->
                     ( model, Cmd.none )
+        
+        ClickedStartGrading ->
+            ( model, Browser.Navigation.pushUrl sharedState.navKey (reverseRoute Grading) )
 
 
 createTask categoryInput maxPointsInput =

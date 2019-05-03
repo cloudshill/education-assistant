@@ -1,4 +1,4 @@
-module SharedState exposing (SharedState, SharedStateUpdate(..), update)
+module SharedState exposing (SharedState, SharedStateUpdate(..), update, Student(..))
 
 import Browser.Navigation
 import List.Extra as List
