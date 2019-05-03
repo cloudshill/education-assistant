@@ -1,0 +1,104 @@
+\documentclass[polish,12pt]{aghthesis}
+% \documentclass[english,12pt]{aghthesis} dla pracy w jêzyku angielskim. Uwaga, w przypadku strony tytu³owej zmiana jêzyka dotyczy tylko kolejno¶ci wersji jêzykowych tytu³u pracy. 
+% Szablon przystosowany jest do druku dwustronnego. 
+
+\usepackage[utf8x]{inputenc}
+\usepackage{url}
+
+\author{Andrzej Sołtysik}
+
+\titlePL{System wspomagający personalizację zadań domowych}
+\titleEN{System supporting personalization of homework}
+
+\fieldofstudy{Informatyka}
+
+\supervisor{dr inż. Ewa Olejarz-Mieszaniec}
+
+\date{\the\year}
+
+
+\begin{document}
+
+\maketitle
+
+\section{\SectionTitleProjectVision}
+\label{sec:cel-wizja}
+%\emph{Charakterystyka problemu, motywacja projektu (w tym przegl±d
+%  istniej±cych rozwi±zañ prowadz±ca do uzasadnienia celu prac),
+%  wizja produktu i analiza zagro¿eñ.}  % niniejsza linijka to tylko komentarz, który nale¿y usun±æ
+
+\section{\SectionTitleScope}
+\label{sec:zakres-funkcjonalnosci}
+
+\subsection{Charakterystyka użytkownika systemu}
+
+Głównym użytkownikiem w systemie jest nauczyciel. Ma on dostęp do wszystkich przedstawionych w dokumentacji funkcjonalności. Oprócz nauczyciela, w systemie wyróżniam również użytkownika niezalogowanego. 
+
+\subsection{Wymagania funkcjonalne - historie użytkownika}
+
+Wymagania ułożone są priorytetami. Dodatkową sekcją są ``wymagania dodatkowe'', które nie są konieczne do uzyskania skończonego produktu. W poniższych wymaganiach, jeśli nie jest wymieniony jawnie, podmiotem jest nauczyciel.
+
+\paragraph{Najwyższy priorytet:}
+\begin{itemize}
+	\item{Mogę wprowadzać wyniki uczniów z podziałem na kategorie zadań.}
+	\item{Mogę otrzymać od systemu sugestie z jakich kategorii zadań poszczególni uczniowie mają zaległości.}
+	\item{Mogę dodawać i usuwać klasy.}
+	\item{Mogę dodawać i usuwać uczniów do klas.}
+	\item{Jako niezalogowany użytkownik mogę się zarejestrować i zalogować.}
+\end{itemize}
+
+\paragraph{Normalny priorytet:}
+\begin{itemize}
+	\item{Mogę zadać zadanie domowe korzystając z wbudowanej bazy zadań.}
+	\item{Mogę dodać zadanie do własnej bazy zadań.}
+	\item{Mogę obejrzeć statystyki i wykresy zaległości, przerobionego materiału i innych.} 
+\end{itemize}
+
+\paragraph{Niski priorytet:}
+\begin{itemize}
+	\item{Mogę użyć wbudowanej bazy zadań do wygenerowania testu.}
+	\item{Mogę manualnie ustalić zaległości poszczególnych uczniów.}
+	\item{Mogę zapisać szkic wprowdzanych wyników.}
+\end{itemize}
+
+\paragraph{Wymagania dodatkowe:}
+\begin{itemize}
+	\item{Mogę wyniki uczniów automatycznie dodać do e-dziennika <tutaj wstawić system e-dziennik jeśli do jakiegoś dostanę dostęp>.}
+\end{itemize}
+
+\subsection{Wymagania niefunkcjonalne}
+
+\begin{itemize}
+	\item{}
+\end{itemize}
+
+
+\section{\SectionTitleRealizationAspects}
+\label{sec:wybrane-aspekty-realizacji}
+%\emph{Przyjête za³o¿enia, struktura i zasada dzia³ania systemu,
+%  wykorzystane rozwi±zania technologiczne wraz z uzasadnieniem
+%  ich wyboru, istotne mechanizmy i zastosowane algorytmy.} % niniejsza linijka to tylko komentarz, który nale¿y usun±æ
+
+\section{\SectionTitleWorkOrganization}
+\label{sec:organizacja-pracy}
+%\emph{Struktura zespo³u (role poszczególnych osób), krótki opis i
+%  uzasadnienie przyjêtej metodyki i/lub kolejno¶ci prac, planowane i
+%  zrealizowane etapy prac ze wskazaniem udzia³u poszczególnych
+%  cz³onków zespo³u, wykorzystane praktyki i narzêdzia w zarz±dzaniu
+%  projektem.}  % niniejsza linijka to tylko komentarz, który nale¿y usun±æ
+
+\section{\SectionTitleResults}
+\label{sec:wyniki-projektu}
+%\emph{Wskazanie wyników projektu (co konkretnie uda³o siê uzyskaæ:
+%  oprogramowanie, dokumentacja, raporty z testów/wdro¿enia, itd.), prezentacja wyników
+%  i ocena ich u¿yteczno¶ci (jak zosta³o to zweryfikowane --- np.\ wnioski
+%  klienta/u¿ytkownika, zrealizowane testy wydajno¶ciowe, itd.),
+%  istniej±ce ograniczenia i propozycje dalszych prac.}  % niniejsza linijka to tylko komentarz, który nale¿y usun±æ
+
+% o ile to mo¿liwe proszê uzywaæ odwo³añ \cite w konkretnych miejscach a nie \nocite
+
+%\nocite{}
+
+\bibliography{bibliografia}
+
+\end{document}
