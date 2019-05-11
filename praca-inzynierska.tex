@@ -36,34 +36,54 @@ Głównym użytkownikiem w systemie jest nauczyciel. Ma on dostęp do wszystkich
 
 \subsection{Wymagania funkcjonalne - historie użytkownika}
 
-Wymagania ułożone są priorytetami. Dodatkową sekcją są ``wymagania dodatkowe'', które nie są konieczne do uzyskania skończonego produktu. W poniższych wymaganiach, jeśli nie jest wymieniony jawnie, podmiotem jest nauczyciel.
+Wymagania ułożone są priorytetami. Wymagania z najwyższym priorytetem są fundamentem systemu. Wymagania z priorytetem normalnym są konieczne, aby system spełniał zamierzoną funkcję. Niski priorytet oznacza, że wymagania nim oznaczone usprawniają pracę z systemem, lecz bez nich system byłby nadal używalny. Dodatkową sekcją są ``wymagania dodatkowe'', które nie są konieczne do uzyskania skończonego produktu.
 
 \paragraph{Najwyższy priorytet:}
 \begin{itemize}
-	\item{Mogę wprowadzać wyniki uczniów z podziałem na kategorie zadań.}
-	\item{Mogę otrzymać od systemu sugestie z jakich kategorii zadań poszczególni uczniowie mają zaległości.}
-	\item{Mogę dodawać, usuwać i edytować konfigurację klasy.}
-	\item{Mogę dodawać i usuwać uczniów do klas.}
-	\item{Jako niezalogowany użytkownik mogę się zarejestrować i zalogować.}
+	\item Jako nauczyciel mogę wprowadzać wyniki uczniów z podziałem na kategorie zadań.
+	\item Jako nauczyciel mogę otrzymać od systemu sugestie z jakich kategorii zadań poszczególni uczniowie mają zaległości.
+	\item Jako nauczyciel mogę konfigurować klasy.
+	\begin{itemize}
+		\item Mogę dodać i usuwać klasy.
+		\item Mogę ustalić nauczany przedmiot w danej klasie.
+		\item Mogę dodawać i usuwać uczniów do klas.
+		\item Mogę wybrać sposób komunikacji z uczniami - grupowy adres e-mail, indywidualne adresy e-mail lub brak komunikacji przez e-mail.
+	\end{itemize}
+	\item Jako niezalogowany użytkownik mogę się zarejestrować i zalogować.
 \end{itemize}
 
 \paragraph{Normalny priorytet:}
 \begin{itemize}
-	\item{Mogę zadać zadanie domowe korzystając z wbudowanej bazy zadań.}
-	\item{Mogę dodać zadanie do własnej bazy zadań.}
-	\item{Mogę obejrzeć statystyki i wykresy zaległości, przerobionego materiału i innych.} 
+	\item Jako nauczyciel mogę obejrzeć indywidualny profil ucznia.
+	\begin{itemize}
+		\item Mogę obejrzeć wyniki ucznia z poszczególnych kategorii.
+		\item Mogę sprawdzić, czy uczeń poprawia wyniki z kategorii, z których miał zaległości.
+	\end{itemize}
+	\item Jako nauczyciel mogę wygenerować zadanie domowe korzystając z wbudowanej bazy zadań.
+	\begin{itemize}
+		\item Mogę wybrać ilość wygenerowanych zadań.
+		\item Mogę zmienić pojedyncze zadania wygenerowane przez system - wybierając je z bazy lub wprowadzając ręcznie. 
+		\item Mogę wydrukować wygenerowane zadania.
+		\item Mogę wysłać wygenerowane zadania uczniom poprzez e-mail.
+	\end{itemize}
+	\item Jako nauczyciel mogę przeglądać prywatną bazę zadań i dodawać do niej nowe zadania.
+	\item Jako nauczyciel mogę obejrzeć podsumowanie klasy.
+	\begin{itemize}
+		\item Mogę sprawdzić, które tematy sprawiają uczniom największy problem.
+		\item Mogę 
+	\end{itemize}
 \end{itemize}
 
 \paragraph{Niski priorytet:}
 \begin{itemize}
-	\item{Mogę użyć wbudowanej bazy zadań do wygenerowania testu.}
-	\item{Mogę manualnie ustalić zaległości poszczególnych uczniów.}
-	\item{Mogę zapisać szkic wprowdzanych wyników.}
+	\item Jako nauczyciel mogę użyć wbudowanej bazy zadań do wygenerowania testu.
+	\item Jako nauczyciel mogę manualnie ustalić zaległości ucznia w wybranych tematach.
+	\item Jako nauczyciel mogę zapisać szkic wprowdzanych wyników.
 \end{itemize}
 
 \paragraph{Wymagania dodatkowe:}
 \begin{itemize}
-	\item{Mogę wyniki uczniów automatycznie dodać do e-dziennika <tutaj wstawić system e-dziennik jeśli do jakiegoś dostanę dostęp>.}
+	\item Jako nauczyciel mogę wyniki uczniów automatycznie dodać do e-dziennika <tutaj wstawić system e-dziennik jeśli do jakiegoś dostanę dostęp>.
 \end{itemize}
 
 
