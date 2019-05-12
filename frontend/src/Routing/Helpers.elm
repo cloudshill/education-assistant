@@ -7,7 +7,6 @@ import Url.Parser exposing ((</>))
 type Route
     = NotFound
     | TaskInput
-    | Grading
 
 
 parseUrl : Url -> Route
@@ -25,15 +24,11 @@ parseUrl url =
 routeParser =
     Url.Parser.oneOf
         [ Url.Parser.map TaskInput Url.Parser.top
-        , Url.Parser.map Grading (Url.Parser.s "grading")
         ]
 
 
 reverseRoute : Route -> String
 reverseRoute route =
     case route of
-        Grading ->
-            "#/grading"
-
         _ ->
             "#/"

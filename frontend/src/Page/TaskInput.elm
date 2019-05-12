@@ -13,8 +13,8 @@ import Html.Events
 import Json.Decode as Json
 import Maybe.Extra as Maybe
 import Palette
-import Routing.Helpers exposing (reverseRoute, Route(..))
-import SharedState exposing (SharedState)
+import Routing.Helpers exposing (Route(..), reverseRoute)
+import SharedState exposing (SharedState, Student)
 
 
 type alias Category =
@@ -27,10 +27,31 @@ type alias Task =
     }
 
 
+type Phase
+    = TaskInput
+    | Grading
+
+
+type Score
+    = NoInput
+    | Score Int
+
+
+type alias StudentScore =
+    { student : Student
+    , scores : List ( Task, Score )
+    }
+
+
+type alias GradingModel = List StudentScore
+
+
 type alias Model =
     { tasks : List Task
     , categoryInput : String
     , maxPointsInput : String
+    , grading : Maybe GradingModel
+    , phase : Phase
     }
 
 
@@ -57,6 +78,8 @@ init =
             { tasks = []
             , categoryInput = ""
             , maxPointsInput = ""
+            , grading = Nothing
+            , phase = TaskInput
             }
     in
     ( model, Cmd.none )
@@ -64,10 +87,15 @@ init =
 
 view : SharedState -> Model -> E.Element Msg
 view sharedState model =
-    E.row [ E.alignBottom, E.width E.fill, E.height E.fill, E.paddingXY 0 30 ]
-        [ leftSite model
-        , rightSite
-        ]
+    case model.phase of
+        TaskInput ->
+            E.row [ E.alignBottom, E.width E.fill, E.height E.fill, E.paddingXY 0 30 ]
+                [ leftSite model
+                , rightSite
+                ]
+
+        Grading ->
+            E.text "Grading!!"
 
 
 leftSite model =
@@ -163,9 +191,20 @@ update sharedState msg model =
 
                 Nothing ->
                     ( model, Cmd.none )
-        
+
         ClickedStartGrading ->
-            ( model, Browser.Navigation.pushUrl sharedState.navKey (reverseRoute Grading) )
+            if List.isEmpty model.tasks then
+                ( model, Cmd.none )
+
+            else
+            let
+                emptyTaskScores =
+                    List.map (\task -> ( task, NoInput )) model.tasks
+
+                scores =
+                    List.map (\student -> { student = student, scores = emptyTaskScores }) sharedState.chosenClass.students
+            in  
+              ( { model | grading = Just scores, phase = Grading }, Cmd.none)
 
 
 createTask categoryInput maxPointsInput =

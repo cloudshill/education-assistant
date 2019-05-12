@@ -10,7 +10,6 @@ import Elements
 import Html
 import Html.Attributes
 import Html.Events
-import Page.Grading
 import Page.TaskInput
 import Palette
 import Routing.Helpers exposing (..)
@@ -21,7 +20,6 @@ import Url exposing (Url)
 type alias Model =
     { route : Route
     , taskInputModel : Page.TaskInput.Model
-    , gradingModel : Page.Grading.Model
     }
 
 
@@ -30,7 +28,6 @@ type Msg
     | NavigateTo Route
     | ChangedClass String
     | GotTaskInputMsg Page.TaskInput.Msg
-    | GotGradingMsg Page.Grading.Msg
 
 
 init : Model
@@ -38,13 +35,9 @@ init =
     let
         ( taskInputModel, _ ) =
             Page.TaskInput.init
-
-        ( gradingModel, _ ) =
-            Page.Grading.init
     in
     { route = TaskInput
     , taskInputModel = taskInputModel
-    , gradingModel = gradingModel
     }
 
 
@@ -119,10 +112,6 @@ pageView sharedState model =
             Page.TaskInput.view sharedState model.taskInputModel
                 |> E.map GotTaskInputMsg
 
-        Grading ->
-            Page.Grading.view sharedState model.gradingModel
-                |> E.map GotGradingMsg
-
         NotFound ->
             E.text "404"
 
@@ -152,15 +141,5 @@ update sharedState model msg =
             in
             ( { model | taskInputModel = nextModel }
             , Cmd.map GotTaskInputMsg nextCmd
-            , NoUpdate
-            )
-
-        GotGradingMsg subMsg ->
-            let
-                ( nextModel, nextCmd ) =
-                    Page.Grading.update sharedState subMsg model.gradingModel
-            in
-            ( { model | gradingModel = nextModel }
-            , Cmd.map GotGradingMsg nextCmd
             , NoUpdate
             )
