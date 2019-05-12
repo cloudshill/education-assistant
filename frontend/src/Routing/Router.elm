@@ -61,15 +61,15 @@ view toMsg sharedState model =
 
 
 page sharedState body =
-    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingXY 13 0 ]
+    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingXY 20 0 ]
         [ header sharedState
-        , E.el [ E.height <| E.fillPortion 11, E.width E.fill ] body
+        , E.el [ E.height E.fill, E.width E.fill ] body
         ]
 
 
 header sharedState =
-    E.row [ E.width E.fill, E.height <| E.fillPortion 1, E.alignTop, Border.color Palette.lightBlue, Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 } ]
-        [ E.column [ E.alignLeft, E.padding 5, E.width <| E.fillPortion 3, Font.color Palette.lightOrange, Font.size 16, Font.bold ] [ E.text "education assistant" ]
+    E.row [ E.width E.fill, E.height (E.px 75), E.alignTop, Border.color Palette.lightBlue, Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 } ]
+        [ E.column [ E.alignLeft, E.padding 10, E.width <| E.fillPortion 3, Font.color Palette.lightOrange, Font.size 24, Font.bold ] [ E.text "education assistant" ]
         , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Podsumowanie" ]
         , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Wprowadzanie wyników" ]
         , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Zadania domowe" ]

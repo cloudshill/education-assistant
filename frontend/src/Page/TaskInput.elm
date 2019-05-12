@@ -71,7 +71,7 @@ view sharedState model =
 
 
 leftSite model =
-    E.column [ E.width <| E.fillPortion 5, E.paddingXY 20 0, E.alignTop, E.spacing 20 ]
+    E.column [ E.width <| E.fillPortion 5, E.height E.fill, E.paddingXY 20 0, E.spacing 20 ]
         [ E.el [ Font.bold, Font.size 18 ] <| E.text "Wprowadź kategorie zadań"
         , table model
         ]
@@ -138,7 +138,7 @@ onEnter msg =
 
 
 rightSite =
-    E.column [ E.width <| E.fillPortion 3, E.spacing 5, E.paddingXY 0 50, E.alignTop ]
+    E.column [ E.width <| E.fillPortion 3, E.height E.fill, E.spacing 5, E.centerY ]
         [ Elements.primaryButton "Rozpocznij wprowadzanie ocen" ClickedStartGrading
         , Elements.secondaryButton "Zapisz szkic" NoOp
         ]
