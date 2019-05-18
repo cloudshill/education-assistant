@@ -15,7 +15,7 @@ import Maybe.Extra as Maybe
 import Page.TaskInput
 import Palette
 import Routing.Router
-import SharedState exposing (SharedState, Student(..))
+import SharedState exposing (SharedState, Student)
 import Url exposing (Url)
 
 
@@ -63,11 +63,11 @@ init _ url key =
     let
         sharedState =
             { navKey = key
-            , chosenClass = { name = "5A", students = []}
+            , chosenClass = { name = "5A", students = ["Basia", "Ryszard", "Mateusz"]}
             , allClasses = 
-                [ { name = "7D", students = [Student "Ola", Student "Tomek", Student "Marek"]}
-                , { name = "5A", students = [Student "Basia", Student "Ryszard", Student "Mateusz"]}
-                , { name = "6C", students = [Student "Michał", Student "Małgosia", Student "Jaś"]}
+                [ { name = "7D", students = ["Ola", "Tomek", "Marek"]}
+                , { name = "5A", students = ["Basia", "Ryszard", "Mateusz"]}
+                , { name = "6C", students = ["Michał", "Małgosia", "Jaś"]}
                 ]
             }
     in

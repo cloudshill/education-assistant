@@ -1,11 +1,11 @@
-module SharedState exposing (SharedState, SharedStateUpdate(..), update, Student(..))
+module SharedState exposing (SharedState, SharedStateUpdate(..), Student, update)
 
 import Browser.Navigation
 import List.Extra as List
 
 
-type Student
-    = Student String
+type alias Student =
+    String
 
 
 type alias Class =
