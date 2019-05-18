@@ -30,7 +30,8 @@ type alias Task =
 
 type Phase
     = TaskInput
-    | Grading
+    | Grading GradingModel
+    | WentBackToTaskInput GradingModel
 
 
 type Score
@@ -52,7 +53,6 @@ type alias Model =
     { tasks : List Task
     , categoryInput : String
     , maxPointsInput : String
-    , grading : Maybe GradingModel
     , phase : Phase
     }
 
@@ -71,8 +71,8 @@ type Msg
     | ChangeMaxPointsInput String
     | EnterRow
     | ClickedStartGrading
-    | ClickedContinueGrading
-    | ClickedGoBack
+    | ClickedContinueGrading GradingModel
+    | ClickedGoBack GradingModel
     | ChangedScore Student Task String
 
 
@@ -83,32 +83,40 @@ init =
             { tasks = [ { category = "Temat zadania 1", maxPoints = 5 }, { category = "Temat zadanie 2", maxPoints = 10 }, { category = "Temat zadania 3", maxPoints = 15 } ]
             , categoryInput = ""
             , maxPointsInput = ""
-            , grading = Nothing
             , phase = TaskInput
             }
     in
     ( model, Cmd.none )
 
 
+extractGradingModel : Phase -> Maybe GradingModel
+extractGradingModel phase =
+    case phase of
+        TaskInput ->
+            Nothing
 
---TODO: fix impossible state in view
+        Grading gradingModel ->
+            Just gradingModel
+
+        WentBackToTaskInput gradingModel ->
+            Just gradingModel
 
 
 view : SharedState -> Model -> E.Element Msg
 view sharedState model =
     case model.phase of
-        TaskInput ->
+        Grading gradingModel ->
+            gradingView model.tasks gradingModel
+
+        _ ->
             taskInputView model
 
-        Grading ->
-            Maybe.map (\gradingModel -> gradingView model.tasks gradingModel) model.grading
-                |> Maybe.withDefault (E.text "This should never happen")
 
-
+taskInputView : Model -> E.Element Msg
 taskInputView model =
     E.row [ E.alignBottom, E.width E.fill, E.height E.fill, E.paddingXY 0 30 ]
         [ leftSite model
-        , rightSite (Maybe.isJust model.grading)
+        , rightSite (extractGradingModel model.phase)
         ]
 
 
@@ -119,7 +127,7 @@ gradingView tasks scores =
             List.indexedMap scoreRow scores
     in
     E.column [ E.width E.fill, E.height E.fill, E.spacing 15, E.paddingXY 10 30 ]
-        [ Elements.secondaryButton "Cofnij do wprowdzania kategorii" ClickedGoBack
+        [ Elements.secondaryButton "Cofnij do wprowdzania zadań" (ClickedGoBack scores)
         , E.column [ E.width E.fill, E.spacing 10 ] <|
             gradingHeaderRow tasks
                 :: rows
@@ -162,7 +170,7 @@ scoreInput student task score =
 
 leftSite model =
     E.column [ E.width <| E.fillPortion 5, E.height E.fill, E.paddingXY 20 0, E.spacing 20 ]
-        [ E.el [ Font.bold, Font.size 18 ] <| E.text "Wprowadź kategorie zadań"
+        [ E.el [ Font.bold, Font.size 18 ] <| E.text "Wprowadź teamty zadań"
         , table model
         ]
 
@@ -186,7 +194,7 @@ headerRow =
         [ E.column [ E.width <| E.fillPortion 1 ] [ E.text "#" ]
         , E.column
             [ E.width <| E.fillPortion 5 ]
-            [ E.text "Kategoria" ]
+            [ E.text "Temat" ]
         , E.column [ E.width <| E.fillPortion 1 ] [ E.text "Maksymalna liczba punktów" ]
         ]
 
@@ -229,14 +237,15 @@ onEnter msg =
     E.htmlAttribute <| Html.Events.on "keydown" (Json.andThen isEnter Html.Events.keyCode)
 
 
-rightSite startedGrading =
+rightSite maybeGradingModel =
     let
         gradingButton =
-            if startedGrading then
-                Elements.primaryButton "Kontynuuj wprowadzanie ocen" ClickedContinueGrading
+            case maybeGradingModel of
+                Just gradingModel ->
+                    Elements.primaryButton "Kontynuuj wprowadzanie ocen" (ClickedContinueGrading gradingModel)
 
-            else
-                Elements.primaryButton "Rozpocznij wprowadzanie ocen" ClickedStartGrading
+                Nothing ->
+                    Elements.primaryButton "Rozpocznij wprowadzanie ocen" ClickedStartGrading
     in
     E.column [ E.width <| E.fillPortion 3, E.height E.fill, E.spacing 5, E.paddingXY 0 40, E.centerY ]
         [ gradingButton
@@ -259,7 +268,14 @@ update sharedState msg model =
         EnterRow ->
             case createTask model.categoryInput model.maxPointsInput of
                 Just task ->
-                    ( { model | tasks = model.tasks ++ [ task ], categoryInput = "", maxPointsInput = "" }, Cmd.none )
+                    ( { model
+                        | tasks = model.tasks ++ [ task ]
+                        , categoryInput = ""
+                        , maxPointsInput = ""
+                        , phase = addTaskToGradingModel model.phase task
+                      }
+                    , Cmd.none
+                    )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -276,41 +292,63 @@ update sharedState msg model =
                     scores =
                         List.map (\student -> { student = student, scores = emptyTaskScores }) sharedState.chosenClass.students
                 in
-                ( { model | grading = Just scores, phase = Grading }, Cmd.none )
+                ( { model | phase = Grading scores }, Cmd.none )
 
-        ClickedContinueGrading ->
-            ( { model | phase = Grading }, Cmd.none )
+        ClickedContinueGrading gradingModel ->
+            ( { model | phase = Grading gradingModel }, Cmd.none )
 
-        ClickedGoBack ->
-            ( { model | phase = TaskInput }, Cmd.none )
+        ClickedGoBack gradingModel ->
+            ( { model | phase = WentBackToTaskInput gradingModel }, Cmd.none )
 
         ChangedScore student task scoreString ->
-            let
-                newScore =
-                    String.toInt scoreString
-                        |> Maybe.map (\i -> Score i)
-                        |> Maybe.withDefault NoInput
-
-                newGradingModel =
-                    model.grading
-                        |> Maybe.map (List.map (\oldScore -> updateScore student task newScore oldScore))
-            in
-            ( { model | grading = Maybe.map (\x -> List.map (\y -> { y | scores = List.map (\( t, _ ) -> ( t, newScore )) y.scores }) x) model.grading }, Cmd.none )
+            ( { model | phase = updateScore model.phase student task scoreString }, Cmd.none )
 
 
-updateScore student updatedTask newScore oldStudentScore =
-    { oldStudentScore
-        | scores =
-            List.map
-                (\( task, score ) ->
-                    if task == updatedTask && oldStudentScore.student == student then
-                        ( task, newScore )
+addTaskToGradingModel : Phase -> Task -> Phase
+addTaskToGradingModel phase task =
+    case phase of
+        WentBackToTaskInput scores ->
+            WentBackToTaskInput <| List.map (\studentScore -> { studentScore | scores = studentScore.scores ++ [ ( task, NoInput ) ] }) scores
 
-                    else
-                        ( task, score )
-                )
-                oldStudentScore.scores
-    }
+        _ ->
+            phase
+
+
+updateScore : Phase -> Student -> Task -> String -> Phase
+updateScore phase student updatedTask newScoreStr =
+    case phase of
+        Grading oldScores ->
+            Grading <|
+                List.map
+                    (\studentScore ->
+                        if studentScore.student == student then
+                            { studentScore | scores = updateStudentScore studentScore.scores updatedTask newScoreStr }
+
+                        else
+                            studentScore
+                    )
+                    oldScores
+
+        _ ->
+            phase
+
+
+updateStudentScore scores updatedTask newScoreStr =
+    let
+        newScore =
+            String.toInt newScoreStr
+                |> Maybe.map (\i -> Score i)
+                |> Maybe.withDefault NoInput
+    in
+    List.map
+        (\( task, oldScore ) ->
+            if task == updatedTask then
+                ( task, newScore )
+
+            else
+                ( task, oldScore )
+        )
+        scores
 
 
 createTask categoryInput maxPointsInput =
