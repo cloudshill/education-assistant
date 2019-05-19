@@ -11,6 +11,7 @@ import Elements
 import Html
 import Html.Attributes
 import Html.Events
+import Page.ClassConfig
 import Page.TaskInput
 import Palette
 import Routing.Helpers exposing (..)
@@ -21,6 +22,7 @@ import Url exposing (Url)
 type alias Model =
     { route : Route
     , taskInputModel : Page.TaskInput.Model
+    , classConfigModel : Page.ClassConfig.Model
     }
 
 
@@ -29,6 +31,7 @@ type Msg
     | NavigateTo Route
     | ChangedClass String
     | GotTaskInputMsg Page.TaskInput.Msg
+    | GotClassConfigMsg Page.ClassConfig.Msg
 
 
 init : Model
@@ -36,9 +39,13 @@ init =
     let
         ( taskInputModel, _ ) =
             Page.TaskInput.init
+
+        classConfigModel =
+            Page.ClassConfig.init
     in
     { route = TaskInput
     , taskInputModel = taskInputModel
+    , classConfigModel = classConfigModel
     }
 
 
@@ -55,19 +62,19 @@ view toMsg sharedState model =
 
 
 page sharedState route body =
-    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingXY 20 0 ]
+    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingXY 70 0 ]
         [ header sharedState route
         , E.el [ E.height E.fill, E.width E.fill ] body
         ]
 
 
 header sharedState route =
-    E.row [ E.width E.fill, E.height (E.px 60), E.alignBottom, Border.color Palette.primary, Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 } ]
+    E.row [ E.width E.fill, E.height (E.px 60), E.paddingXY 20 0, E.alignBottom, Border.color Palette.primary, Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 } ]
         [ E.column [ E.alignLeft, E.alignBottom, E.paddingXY 0 15, E.width <| E.fillPortion 3, Font.color Palette.secondary, Font.size 24, Font.bold ] [ E.text "education assistant" ]
         , navbarButton "Podsumowanie" ClassView route
         , navbarButton "Wprowadzanie wyników" TaskInput route
         , navbarButton "Zadania domowe" NotFound route
-        , navbarButton "Zarządzaj klasami" NotFound route
+        , navbarButton "Zarządzaj klasami" ClassConfig route
         , E.column [ E.alignRight, E.alignBottom, E.paddingXY 0 15, E.width <| E.fillPortion 1, E.spacingXY 0 7 ]
             [ classSelector sharedState
 
@@ -136,6 +143,10 @@ pageView sharedState model =
         NotFound ->
             E.text "404"
 
+        ClassConfig ->
+            Page.ClassConfig.view sharedState model.classConfigModel
+                |> E.map GotClassConfigMsg
+
 
 update : SharedState -> Model -> Msg -> ( Model, Cmd Msg, SharedStateUpdate )
 update sharedState model msg =
@@ -162,5 +173,15 @@ update sharedState model msg =
             in
             ( { model | taskInputModel = nextModel }
             , Cmd.map GotTaskInputMsg nextCmd
+            , NoUpdate
+            )
+
+        GotClassConfigMsg subMsg ->
+            let
+                ( nextModel, nextCmd ) =
+                    Page.ClassConfig.update sharedState subMsg model.classConfigModel    
+            in
+            ( { model | classConfigModel = nextModel }
+            , Cmd.map GotClassConfigMsg nextCmd
             , NoUpdate
             )

@@ -8,6 +8,7 @@ type Route
     = NotFound
     | TaskInput
     | ClassView
+    | ClassConfig
 
 
 parseUrl : Url -> Route
@@ -26,6 +27,7 @@ routeParser =
     Url.Parser.oneOf
         [ Url.Parser.map TaskInput (s "input")
         , Url.Parser.map ClassView (s "class")
+        , Url.Parser.map ClassConfig (s "config")
         ]
 
 
@@ -40,3 +42,6 @@ reverseRoute route =
 
         TaskInput ->
             "#/input"
+
+        ClassConfig ->
+            "#/config"
