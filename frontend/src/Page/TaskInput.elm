@@ -169,8 +169,8 @@ scoreInput student task score =
 
 
 leftSite model =
-    E.column [ E.width <| E.fillPortion 5, E.height E.fill, E.paddingXY 20 0, E.spacing 20 ]
-        [ E.el [ Font.bold, Font.size 18 ] <| E.text "Wprowadź teamty zadań"
+    E.column [ E.width <| E.fillPortion 5, E.height E.fill, E.paddingXY 20 0, E.spacing 30 ]
+        [ E.el [ Font.bold, Font.size 26 ] <| E.text "Wprowadź tematy zadań"
         , table model
         ]
 
@@ -218,7 +218,7 @@ bgColor num =
 
 inputRow categoryInput maxPointsInput =
     E.row [ E.width E.fill, E.spacing 5, E.padding 5 ]
-        [ E.column [ E.width <| E.fillPortion 1, Font.color Palette.lightOrange ] [ E.text "+" ]
+        [ E.column [ E.width <| E.fillPortion 1, Font.color Palette.secondary ] [ E.text "+" ]
         , E.column [ E.width <| E.fillPortion 5 ] [ Input.text [ E.padding 0, Border.width 0, onEnter EnterRow ] { text = categoryInput, onChange = ChangeCategoryInput, placeholder = Just <| Input.placeholder [] <| E.text "Category", label = Input.labelHidden "Category" } ]
         , E.column [ E.width <| E.fillPortion 1 ] [ Input.text [ E.padding 0, Border.width 0, onEnter EnterRow ] { text = maxPointsInput, onChange = ChangeMaxPointsInput, placeholder = Just <| Input.placeholder [] <| E.text "Max points", label = Input.labelHidden "Max points" } ]
         ]
@@ -247,7 +247,7 @@ rightSite maybeGradingModel =
                 Nothing ->
                     Elements.primaryButton "Rozpocznij wprowadzanie ocen" ClickedStartGrading
     in
-    E.column [ E.width <| E.fillPortion 3, E.height E.fill, E.spacing 5, E.paddingXY 0 40, E.centerY ]
+    E.column [ E.width <| E.fillPortion 3, E.height E.fill, E.spacing 5, E.paddingXY 0 60, E.centerY ]
         [ gradingButton
         , Elements.secondaryButton "Zapisz szkic" NoOp
         ]
@@ -337,6 +337,7 @@ updateStudentScore scores updatedTask newScoreStr =
     let
         newScore =
             String.toInt newScoreStr
+                |> Maybe.filter (\i -> i <= updatedTask.maxPoints)
                 |> Maybe.map (\i -> Score i)
                 |> Maybe.withDefault NoInput
     in

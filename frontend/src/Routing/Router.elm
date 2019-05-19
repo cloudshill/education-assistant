@@ -6,6 +6,7 @@ import Element as E
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Element.Input as Input
 import Elements
 import Html
 import Html.Attributes
@@ -45,31 +46,48 @@ view : (Msg -> msg) -> SharedState -> Model -> Browser.Document msg
 view toMsg sharedState model =
     let
         body =
-            page sharedState (pageView sharedState model)
+            page sharedState model.route (pageView sharedState model)
                 |> E.map toMsg
     in
-    { title = "foo"
+    { title = "Education assistant"
     , body = [ E.layout [] body ]
     }
 
 
-page sharedState body =
+page sharedState route body =
     E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingXY 20 0 ]
-        [ header sharedState
+        [ header sharedState route
         , E.el [ E.height E.fill, E.width E.fill ] body
         ]
 
 
-header sharedState =
-    E.row [ E.width E.fill, E.height (E.px 75), E.alignTop, Border.color Palette.lightBlue, Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 } ]
-        [ E.column [ E.alignLeft, E.padding 10, E.width <| E.fillPortion 3, Font.color Palette.lightOrange, Font.size 24, Font.bold ] [ E.text "education assistant" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Podsumowanie" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Wprowadzanie wyników" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1 ] [ E.el [ E.centerX ] <| E.text "Zadania domowe" ]
-        , E.column [ E.alignRight, E.padding 5, E.width <| E.fillPortion 1, E.padding 0, E.spacingXY 0 7 ]
+header sharedState route =
+    E.row [ E.width E.fill, E.height (E.px 60), E.alignBottom, Border.color Palette.primary, Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 } ]
+        [ E.column [ E.alignLeft, E.alignBottom, E.paddingXY 0 15, E.width <| E.fillPortion 3, Font.color Palette.secondary, Font.size 24, Font.bold ] [ E.text "education assistant" ]
+        , navbarButton "Podsumowanie" ClassView route
+        , navbarButton "Wprowadzanie wyników" TaskInput route
+        , navbarButton "Zadania domowe" NotFound route
+        , navbarButton "Zarządzaj klasami" NotFound route
+        , E.column [ E.alignRight, E.alignBottom, E.paddingXY 0 15, E.width <| E.fillPortion 1, E.spacingXY 0 7 ]
             [ classSelector sharedState
-            , E.el [ E.centerX ] <| Elements.primaryButtonScaled "Zarządzaj klasą" (NavigateTo TaskInput) 0.5
+
+            --, E.el [ E.centerX ] <| Elements.primaryButtonScaled "Zarządzaj klasą" (NavigateTo TaskInput) 0.5
             ]
+        ]
+
+
+navbarButton text targetRoute currentRoute =
+    let
+        borderColor =
+            if targetRoute == currentRoute then
+                Palette.primary
+
+            else
+                E.rgb 1 1 1
+    in
+    E.column [ E.alignRight, E.alignBottom, E.width <| E.fillPortion 1, E.centerX, E.pointer, E.mouseOver [ Font.color Palette.highlightedFont ], E.htmlAttribute <| Html.Events.onClick (NavigateTo targetRoute) ]
+        [ E.el [ E.paddingXY 0 15, E.centerX, Border.color borderColor, Border.solid, Border.widthEach { bottom = 4, top = 0, left = 0, right = 0 } ] <|
+            E.text text
         ]
 
 
@@ -111,6 +129,9 @@ pageView sharedState model =
         TaskInput ->
             Page.TaskInput.view sharedState model.taskInputModel
                 |> E.map GotTaskInputMsg
+
+        ClassView ->
+            E.none
 
         NotFound ->
             E.text "404"
