@@ -71,7 +71,7 @@ init _ url key =
                 ]
             }
     in
-    ( { appState = Ready sharedState Routing.Router.init
+    ( { appState = Ready sharedState <| Routing.Router.init sharedState
       , url = url
       , navKey = key
       }

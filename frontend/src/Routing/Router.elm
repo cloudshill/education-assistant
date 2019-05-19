@@ -34,14 +34,14 @@ type Msg
     | GotClassConfigMsg Page.ClassConfig.Msg
 
 
-init : Model
-init =
+init : SharedState -> Model
+init sharedState =
     let
         ( taskInputModel, _ ) =
             Page.TaskInput.init
 
         classConfigModel =
-            Page.ClassConfig.init
+            Page.ClassConfig.init sharedState
     in
     { route = TaskInput
     , taskInputModel = taskInputModel
@@ -62,9 +62,9 @@ view toMsg sharedState model =
 
 
 page sharedState route body =
-    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 13, E.paddingXY 70 0 ]
+    E.column [ E.height E.fill, E.width E.fill, Font.color Palette.fontColor, Font.size 14, E.paddingXY 20 0 ]
         [ header sharedState route
-        , E.el [ E.height E.fill, E.width E.fill ] body
+        , E.el [ E.height E.fill, E.width E.fill, E.paddingXY 250 0 ] body
         ]
 
 
@@ -76,10 +76,7 @@ header sharedState route =
         , navbarButton "Zadania domowe" NotFound route
         , navbarButton "Zarządzaj klasami" ClassConfig route
         , E.column [ E.alignRight, E.alignBottom, E.paddingXY 0 15, E.width <| E.fillPortion 1, E.spacingXY 0 7 ]
-            [ classSelector sharedState
-
-            --, E.el [ E.centerX ] <| Elements.primaryButtonScaled "Zarządzaj klasą" (NavigateTo TaskInput) 0.5
-            ]
+            [ classSelector sharedState ]
         ]
 
 
@@ -93,7 +90,7 @@ navbarButton text targetRoute currentRoute =
                 E.rgb 1 1 1
     in
     E.column [ E.alignRight, E.alignBottom, E.width <| E.fillPortion 1, E.centerX, E.pointer, E.mouseOver [ Font.color Palette.highlightedFont ], E.htmlAttribute <| Html.Events.onClick (NavigateTo targetRoute) ]
-        [ E.el [ E.paddingXY 0 15, E.centerX, Border.color borderColor, Border.solid, Border.widthEach { bottom = 4, top = 0, left = 0, right = 0 } ] <|
+        [ E.el [ E.paddingXY 0 15, E.centerX, Font.size 15, Border.color borderColor, Border.solid, Border.widthEach { bottom = 4, top = 0, left = 0, right = 0 } ] <|
             E.text text
         ]
 
@@ -179,7 +176,7 @@ update sharedState model msg =
         GotClassConfigMsg subMsg ->
             let
                 ( nextModel, nextCmd ) =
-                    Page.ClassConfig.update sharedState subMsg model.classConfigModel    
+                    Page.ClassConfig.update sharedState subMsg model.classConfigModel
             in
             ( { model | classConfigModel = nextModel }
             , Cmd.map GotClassConfigMsg nextCmd
