@@ -7,17 +7,17 @@ import Element.Font as Font
 import Element.Input as Input
 import List.Extra as List
 import Palette
-import SharedState exposing (SharedState, Class)
+import SharedState exposing (Class, SharedState)
 
 
 type alias Model =
-    {
-        selectedClass : Class
+    { selectedClass : Class
     }
 
 
 type Msg
     = NoOp
+    | SelectedClass Class
 
 
 init : SharedState -> Model
@@ -29,42 +29,56 @@ init sharedState =
 view : SharedState -> Model -> E.Element Msg
 view sharedState model =
     E.row [ E.width E.fill, E.height E.fill, E.paddingXY 0 30, E.spacingXY 30 0 ]
-        [ E.column [ E.width <| E.fillPortion 1, E.alignTop, Border.widthEach { top = 1, left = 1, right = 1, bottom = 0 }, Border.rounded 2, Border.color Palette.tableBorder ] <| classChoosers sharedState
+        [ E.column [ E.width <| E.fillPortion 1, E.alignTop, Border.widthEach { top = 1, left = 1, right = 1, bottom = 0 }, Border.rounded 2, Border.color Palette.tableBorder ] <|
+            classChoosers sharedState model.selectedClass
         , E.column [ E.width <| E.fillPortion 4, E.alignTop ] [ E.text "right" ]
         ]
 
 
-classChoosers : SharedState -> List (E.Element Msg)
-classChoosers sharedState =
+classChoosers : SharedState -> Class -> List (E.Element Msg)
+classChoosers sharedState chosenClass =
     let
         lastIndex =
             List.length sharedState.allClasses - 1
     in
-    List.indexedMap (\i class -> classChooser class (i == lastIndex)) sharedState.allClasses
+    List.indexedMap (\i class -> classChooser class (i == lastIndex) (chosenClass == class)) sharedState.allClasses
 
 
-classChooser : Class -> Bool -> E.Element Msg
-classChooser class isLast =
+classChooser : Class -> Bool -> Bool -> E.Element Msg
+classChooser class isLast isSelected =
     let
         attributes =
             [ E.width E.fill
             , E.height <| E.px 40
-            , E.paddingXY 5 0
             , Border.solid
             , Border.widthEach { top = 0, left = 0, right = 0, bottom = 1 }
             , Border.color Palette.tableBorder
             ]
 
-        allAttributes =
+        lastRoundedBorder =
             if isLast then
-                Border.rounded 2 :: attributes
+                [ Border.rounded 2 ]
 
             else
-                attributes
+                []
+
+        selectedBorder =
+            if isSelected then
+                [ Border.widthEach { left = 2, right = 0, top = 0, bottom = 0 }, Border.color Palette.primary ]
+
+            else
+                []
     in
-    Input.button allAttributes { onPress = Nothing, label = E.text class.name }
+    Input.button (lastRoundedBorder ++ attributes) { onPress = Just <| SelectedClass class, label = E.el (selectedBorder ++ [ E.height E.fill, E.width E.fill, E.paddingXY 5 0 ]) <| E.text class.name }
 
 
 update : SharedState -> Msg -> Model -> ( Model, Cmd Msg )
 update sharedState msg model =
-    ( model, Cmd.none )
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
+        SelectedClass newClass ->
+            ( { model | selectedClass = newClass }
+            , Cmd.none
+            )
