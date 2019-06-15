@@ -22,6 +22,21 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - servant
+- servant-server
+- wai
+- warp
+- aeson
+- transformers
+- esqueleto
+- persistent
+- persistent-template
+- persistent-postgresql
+- mtl
+- monad-logger
+- monad-control
+- unliftio-core
+- time
+- text
 
 library:
   source-dirs: src
