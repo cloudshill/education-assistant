@@ -11,7 +11,6 @@ import Elements
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Json
-import List.Extra as List
 import Maybe.Extra as Maybe
 import Palette
 import Routing.Helpers exposing (Route(..), reverseRoute)
@@ -30,8 +29,7 @@ type alias Task =
 
 type Phase
     = TaskInput
-    | Grading GradingModel
-    | WentBackToTaskInput GradingModel
+    | Grading
 
 
 type Score
@@ -53,6 +51,7 @@ type alias Model =
     { tasks : List Task
     , categoryInput : String
     , maxPointsInput : String
+    , grading : Maybe GradingModel
     , phase : Phase
     }
 
@@ -71,52 +70,43 @@ type Msg
     | ChangeMaxPointsInput String
     | EnterRow
     | ClickedStartGrading
-    | ClickedContinueGrading GradingModel
-    | ClickedGoBack GradingModel
-    | ChangedScore Student Task String
+    | ClickedContinueGrading
+    | ClickedGoBack
 
 
 init : ( Model, Cmd Msg )
 init =
     let
         model =
-            { tasks = [ { category = "Temat zadania 1", maxPoints = 5 }, { category = "Temat zadanie 2", maxPoints = 10 }, { category = "Temat zadania 3", maxPoints = 15 } ]
+            { tasks = [ { category = "Test 1", maxPoints = 5 }, { category = "Test 2", maxPoints = 10 }, { category = "Test 3", maxPoints = 15 } ]
             , categoryInput = ""
             , maxPointsInput = ""
+            , grading = Nothing
             , phase = TaskInput
             }
     in
     ( model, Cmd.none )
 
 
-extractGradingModel : Phase -> Maybe GradingModel
-extractGradingModel phase =
-    case phase of
-        TaskInput ->
-            Nothing
 
-        Grading gradingModel ->
-            Just gradingModel
-
-        WentBackToTaskInput gradingModel ->
-            Just gradingModel
+--TODO: fix impossible state in view
 
 
 view : SharedState -> Model -> E.Element Msg
 view sharedState model =
     case model.phase of
-        Grading gradingModel ->
-            gradingView model.tasks gradingModel
-
-        _ ->
+        TaskInput ->
             taskInputView model
 
+        Grading ->
+            Maybe.map (\gradingModel -> gradingView model.tasks gradingModel) model.grading
+                |> Maybe.withDefault (E.text "This should never happen")
 
-taskInputView : Model -> E.Element Msg
+
 taskInputView model =
     E.row [ E.alignBottom, E.width E.fill, E.height E.fill, E.paddingXY 0 30 ]
         [ leftSite model
-        , rightSite (extractGradingModel model.phase)
+        , rightSite (Maybe.isJust model.grading)
         ]
 
 
@@ -124,11 +114,11 @@ gradingView : List Task -> GradingModel -> E.Element Msg
 gradingView tasks scores =
     let
         rows =
-            List.indexedMap scoreRow scores
+            List.map scoreRow scores
     in
-    E.column [ E.width E.fill, E.height E.fill, E.spacing 15, E.paddingXY 10 30 ]
-        [ Elements.secondaryButton "Cofnij do wprowdzania zadań" (ClickedGoBack scores)
-        , E.column [ E.width E.fill, E.spacing 10 ] <|
+    E.column [ E.width E.fill, E.height E.fill ]
+        [ Elements.secondaryButton "Cofnij do wprowdzania kategorii" ClickedGoBack
+        , E.column [ E.width E.fill ] <|
             gradingHeaderRow tasks
                 :: rows
         ]
@@ -139,38 +129,19 @@ gradingHeaderRow tasks =
         columns =
             List.map (\task -> E.column [ E.width <| E.fillPortion 1 ] [ E.text task.category ]) tasks
     in
-    E.row [ E.height E.fill, E.width E.fill, E.spacing 5, E.padding 5, Font.bold, Font.center ] <|
+    E.row [ E.width E.fill, E.spacing 5, E.padding 5, Font.bold, Font.center ] <|
         E.column [ E.width <| E.fillPortion 1 ] [ E.text "Imię i nazwisko" ]
             :: columns
 
 
-scoreRow index studentScore =
-    let
-        columns =
-            List.map (\( task, score ) -> E.column [ E.width <| E.fillPortion 1 ] [ scoreInput studentScore.student task score ]) studentScore.scores
-    in
-    E.row [ E.paddingXY 0 5, E.width E.fill, Background.color (bgColor index) ] <|
-        E.column [ E.height E.fill, E.width E.fill ] [ E.text studentScore.student ]
-            :: columns
-
-
-scoreInput : Student -> Task -> Score -> E.Element Msg
-scoreInput student task score =
-    let
-        text =
-            case score of
-                NoInput ->
-                    ""
-
-                Score value ->
-                    String.fromInt value
-    in
-    Input.text [ Background.color (E.rgba255 0 0 0 0.0), E.padding 0, Border.width 0, onEnter EnterRow ] { text = text, onChange = ChangedScore student task, placeholder = Just <| Input.placeholder [] <| E.text "Points", label = Input.labelHidden "Points" }
+scoreRow score =
+    E.row []
+        [ E.column [] [ E.text score.student ] ]
 
 
 leftSite model =
-    E.column [ E.width <| E.fillPortion 5, E.height E.fill, E.paddingXY 20 0, E.spacing 30 ]
-        [ E.el [ Font.bold, Font.size 26 ] <| E.text "Wprowadź tematy zadań"
+    E.column [ E.width <| E.fillPortion 5, E.height E.fill, E.paddingXY 20 0, E.spacing 20 ]
+        [ E.el [ Font.bold, Font.size 18 ] <| E.text "Wprowadź kategorie zadań"
         , table model
         ]
 
@@ -194,7 +165,7 @@ headerRow =
         [ E.column [ E.width <| E.fillPortion 1 ] [ E.text "#" ]
         , E.column
             [ E.width <| E.fillPortion 5 ]
-            [ E.text "Temat" ]
+            [ E.text "Kategoria" ]
         , E.column [ E.width <| E.fillPortion 1 ] [ E.text "Maksymalna liczba punktów" ]
         ]
 
@@ -237,17 +208,16 @@ onEnter msg =
     E.htmlAttribute <| Html.Events.on "keydown" (Json.andThen isEnter Html.Events.keyCode)
 
 
-rightSite maybeGradingModel =
+rightSite startedGrading =
     let
         gradingButton =
-            case maybeGradingModel of
-                Just gradingModel ->
-                    Elements.primaryButton "Kontynuuj wprowadzanie ocen" (ClickedContinueGrading gradingModel)
+            if startedGrading then
+                Elements.primaryButton "Kontynuuj wprowadzanie ocen" ClickedContinueGrading
 
-                Nothing ->
-                    Elements.primaryButton "Rozpocznij wprowadzanie ocen" ClickedStartGrading
+            else
+                Elements.primaryButton "Rozpocznij wprowadzanie ocen" ClickedStartGrading
     in
-    E.column [ E.width <| E.fillPortion 3, E.height E.fill, E.spacing 5, E.paddingXY 0 60, E.centerY ]
+    E.column [ E.width <| E.fillPortion 3, E.height E.fill, E.spacing 5, E.centerY ]
         [ gradingButton
         , Elements.secondaryButton "Zapisz szkic" NoOp
         ]
@@ -268,14 +238,7 @@ update sharedState msg model =
         EnterRow ->
             case createTask model.categoryInput model.maxPointsInput of
                 Just task ->
-                    ( { model
-                        | tasks = model.tasks ++ [ task ]
-                        , categoryInput = ""
-                        , maxPointsInput = ""
-                        , phase = addTaskToGradingModel model.phase task
-                      }
-                    , Cmd.none
-                    )
+                    ( { model | tasks = model.tasks ++ [ task ], categoryInput = "", maxPointsInput = "" }, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -292,64 +255,13 @@ update sharedState msg model =
                     scores =
                         List.map (\student -> { student = student, scores = emptyTaskScores }) sharedState.chosenClass.students
                 in
-                ( { model | phase = Grading scores }, Cmd.none )
+                ( { model | grading = Just scores, phase = Grading }, Cmd.none )
 
-        ClickedContinueGrading gradingModel ->
-            ( { model | phase = Grading gradingModel }, Cmd.none )
+        ClickedContinueGrading ->
+            ( { model | phase = Grading }, Cmd.none )
 
-        ClickedGoBack gradingModel ->
-            ( { model | phase = WentBackToTaskInput gradingModel }, Cmd.none )
-
-        ChangedScore student task scoreString ->
-            ( { model | phase = updateScore model.phase student task scoreString }, Cmd.none )
-
-
-addTaskToGradingModel : Phase -> Task -> Phase
-addTaskToGradingModel phase task =
-    case phase of
-        WentBackToTaskInput scores ->
-            WentBackToTaskInput <| List.map (\studentScore -> { studentScore | scores = studentScore.scores ++ [ ( task, NoInput ) ] }) scores
-
-        _ ->
-            phase
-
-
-updateScore : Phase -> Student -> Task -> String -> Phase
-updateScore phase student updatedTask newScoreStr =
-    case phase of
-        Grading oldScores ->
-            Grading <|
-                List.map
-                    (\studentScore ->
-                        if studentScore.student == student then
-                            { studentScore | scores = updateStudentScore studentScore.scores updatedTask newScoreStr }
-
-                        else
-                            studentScore
-                    )
-                    oldScores
-
-        _ ->
-            phase
-
-
-updateStudentScore scores updatedTask newScoreStr =
-    let
-        newScore =
-            String.toInt newScoreStr
-                |> Maybe.filter (\i -> i <= updatedTask.maxPoints)
-                |> Maybe.map (\i -> Score i)
-                |> Maybe.withDefault NoInput
-    in
-    List.map
-        (\( task, oldScore ) ->
-            if task == updatedTask then
-                ( task, newScore )
-
-            else
-                ( task, oldScore )
-        )
-        scores
+        ClickedGoBack ->
+            ( { model | phase = TaskInput }, Cmd.none )
 
 
 createTask categoryInput maxPointsInput =
